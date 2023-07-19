@@ -1,0 +1,92 @@
+{% extends "base.tmpl" %}
+
+{% block scripts %}
+<script src="{{ url_for("static", filename="block.js") }}"></script>
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid mt-3">
+    <!-- Account Info -->
+    <div class="row justify-content-md-center">
+        <div class="col-12 col-sm-12 col-md-10 mt-3">
+            <h4 style="margin-left: -10px">Блок №{{ block.index }}</h4>
+            <div class="row">
+                <div class="col-5 col-sm-5 col-md-4 font-weight-bold text-secondary text-truncate"
+                     style="padding-bottom: 1rem!important; margin-bottom: 0;">
+                    Индекс
+                    <br>
+                    Хеш блока
+                    <br>
+                    Следующий блок
+                    <br>
+                    Предыдущий блок
+                    <br>
+                    Дата
+                    <br>
+                    Корень Меркла
+                    <br>
+                    Кол-во транзакций
+                    <br>
+                    Сумма транзакций
+                    <br>
+                    Размер
+                    <br>
+                    Комиссия
+                    <br>
+                    Награда
+                    <br>
+                    Майнер
+                    <br>
+                    Сложность
+                    <br>
+                    Nonce
+                </div>
+                <div class="col-7 col-sm-7 col-md-8 text-truncate">
+                    <span id="block-index">{{ block.index }}</span>
+                    <br>
+                    {{ block.hash }}
+                    <br>
+                    <div id="next-block">
+                        {% if block.next_block is not none %}
+                        <a href="/block/{{ block.next_block }}">{{ block.next_block }}</a>
+                        {% else %}
+                        -
+                        {% endif %}
+                    </div>
+                    {% if block.prev_block is not none %}
+                    <a href="/block/{{ block.prev_block }}">{{ block.prev_block }}</a>
+                    {% else %}
+                    -
+                    {% endif %}
+                    <br>
+                    <div class="datetime" data-timestamp="{{ block.timestamp }}">
+                        <span>{{ block.timestamp|datetime }}</span>
+                    </div>
+                    {{ block.merkle_root }}
+                    <br>
+                    {{ block.transactions|length }}
+                    <br>
+                    {{ block.total_amount|coin("G") }}
+                    <br>
+                    {{ block.size|filesize }}
+                    <br>
+                    {{ block.fee|coin("G") }}
+                    <br>
+                    {{ block.reward|coin("G") }}
+                    <br>
+                    <a href="/account/{{ block.miner }}">{{ block.miner }}</a>
+                    <br>
+                    {{ block.difficult }}
+                    <br>
+                    {{ block.nonce }}
+                </div>
+            </div>
+            <div class="row mb-3">
+                <h4 class="my-2">Список транзакций</h4>
+                {% import "macros.tmpl" as macros %}
+                {{ macros.transaction_list(block.transactions) }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

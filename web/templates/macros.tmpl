@@ -1,0 +1,106 @@
+{% macro transaction_list(transactions, account=none)  %}
+<div class="col-12 col-sm-12 col-md-12"
+     style="border-left: 1px solid #dee2e6; border-right: 1px solid #dee2e6; font-size:15px;">
+    {% for tx in transactions %}
+        <div class="row" style="border-bottom: 2px solid #dee2e6; font-size:smaller;"></div>
+        <div class="content row">
+            <div class="col-12 text-truncate" style="text-align: center">
+                <b>{{ tx.hash }}</b>
+            </div>
+            <div style="margin-top: 4px" class="col-12">
+                <b class="font-weight-bold text-secondary">Дата:</b>
+                {{ tx.timestamp|datetime }}
+            </div>
+            <div style="margin-top: 4px" class="col-12">
+                <b class="font-weight-bold text-secondary">Блок:</b>
+                <a href="/block/{{ tx.block_hash }}">{{ tx.block_hash }}</a>
+            </div>
+            <div style="margin-top: 4px" class="col-12">
+                <b class="font-weight-bold text-secondary">Размер:</b>
+                {{ tx.size|filesize }}
+            </div>
+            <div style="margin-top: 4px" class="col-12">
+                <b class="font-weight-bold text-secondary">Общая стоимость:</b>
+                {{ tx.total_amount|coin("G") }}
+            </div>
+            <div style="margin-top: 4px" class="col-12">
+                <b class="font-weight-bold text-secondary">Награда:</b>
+                {{ (tx.fee // tx.size)|coin("M") }}/байт
+            </div>
+            {% if tx.inputs|length > 0 or tx.outputs|length > 0 %}
+                <div style="margin-top: 2px" class="col-12">
+                    <b class="font-weight-bold text-secondary">Отправители:</b>
+                    {% if tx.inputs|length > 0 %}
+                        {{ tx.inputs|length }} источника
+                        (
+                        <button class="link_button" data-toggle="collapse"
+                                data-target="#inp_{{ tx.hash }}"
+                                aria-expanded="false"
+                                aria-controls="inp_{{ tx.hash }}">
+                            Подробнее↓
+                        </button>)
+                        <div id="inp_{{ tx.hash }}" style="margin-top: 4px" class="collapse">
+                            <ul class="list-group io_details">
+                                {% for inp in tx.inputs %}
+                                    <li class="list-group-item text-truncate">
+                                        {{ inp.amount|coin("G") }} ←
+                                        {% if account is not none and inp.public_key == account.public_key %}
+                                            {{ inp.outpoint }}
+                                        {% else %}
+                                            <a href="/account/{{ inp.public_key }}">{{ inp.outpoint }}</a></li>
+                                        {% endif %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% else %}
+                        Награда за майнинг
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            {% if tx.outputs|length > 0 %}
+                <div style="margin-top: 2px" class="col-12">
+                    <b class="font-weight-bold text-secondary">Получатели:</b>
+                    {{ tx.outputs|length }} аккаунтов
+                    (
+                    <button class="link_button" data-toggle="collapse"
+                            data-target="#out_{{ tx.hash }}"
+                            aria-expanded="false"
+                            aria-controls="out_{{ tx.hash }}">
+                        Подробнее↓
+                    </button>
+                    )
+                    <div id="out_{{ tx.hash }}" style="margin-top: 4px" class="collapse">
+                        <ul class="list-group io_details">
+                            {% for out in tx.outputs %}
+                                <li class="list-group-item text-truncate">{{ out.amount|coin("G") }} →
+                                    {% if account is not none and out.public_key == account.public_key %}
+                                        {{ out.public_key }}
+                                    {% else %}
+                                        <a href="/account/{{ out.public_key }}">{{ out.public_key }}</a></li>
+                                    {% endif %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            {% endif %}
+
+            {% if tx.file is not none %}
+                <div style="margin-top: 2px" class="col-12">
+                    <b class="font-weight-bold text-secondary">Файл:</b>
+                    {% if tx.file.name is none %}(Без названия){% else %}
+                        {{ tx.file.name }}{% endif %}, размер: {{ tx.file.size|filesize }}
+                    <br>
+                    Действия:
+                    {% if tx.file.is_encrypted() and "key" in session and
+                        tx.file.public_key == session["key"]["public_key"] %}
+                        <a href="/decrypt_file/{{ tx.hash }}">Расшифровать+Скачать⇩</a>
+                    {% else %}
+                        <a href="/get_file/{{ tx.hash }}">Скачать⇩</a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>
+{% endmacro %}

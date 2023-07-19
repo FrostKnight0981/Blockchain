@@ -1,0 +1,153 @@
+{% extends "base.tmpl" %}
+
+{% block scripts %}
+    <script src="../static/account.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-3">
+    <!-- Account Info -->
+    <div class="row justify-content-md-center">
+        <div class="col-12 col-sm-12 col-md-10 mt-3">
+            <h4 style="margin-left: -10px">Информация о аккаунте</h4>
+            <div class="row">
+                <div class="col-5 col-sm-5 col-md-4 font-weight-bold text-secondary text-truncate"
+                     style="border-right: 1px solid #dee2e6; padding-bottom: 1rem!important; margin-bottom: 0;">
+                    Публичный ключ
+                    <br>
+                    Первая транзакция
+                    <br>
+                    Кол-во транзакций
+                    <br>
+                    Кол-во файлов/память
+                    <br>
+                    Баланс
+                </div>
+                <div class="col-7 col-sm-7 col-md-8 text-truncate"
+                     style=" padding-bottom: 1rem!important; margin-bottom: 0;">
+                    <span id="public-key">{{ account.public_key }}</span>
+                    <br>
+                    <div class="datetime" data-timestamp="
+                        {% if account.transactions|length == 0 %}
+                            -
+                        {% else %}
+                            {{ account.transactions[0].timestamp }}
+                        {% endif %}">
+                        <span>-</span>
+                    </div>
+                    <span id="tx-count">{{ account.transactions|length }}</span>
+                    <br>
+                    <span id="file-stats">{{ account.files|length }} файлов ({{ account.total_size|filesize }})</span>
+                    <br>
+                    <span id="balance">{{ account.balance|coin("G") }}</span>
+                </div>
+                {% if "key" in session and session["key"]["public_key"] == account.public_key %}
+                <div class="col-7 col-sm-7 col-md-8 mb-2 text-truncate">
+                    <h4>Создание транзакции</h4>
+                    <div>
+                        <div class="form-group">
+                            <label for="sendFile">Файл для загрузки</label>
+                            <input type="file" class="form-control-file" id="sendFile">
+                            <div class="form-check mt-2">
+                              <input class="form-check-input" type="checkbox" id="encrypt">
+                              <label class="form-check-label" for="encrypt">Зашифровать</label>
+                            </div>
+                            <div class="form-check mt-2">
+                              <input class="form-check-input" type="checkbox" id="to_verify_base" checked>
+                              <label class="form-check-label" for="to_verify_base">Добавлять в верефикационную базу</label>
+                            </div>
+                            <input id="tx_value" class="form-control mt-2" type="text" placeholder="Сумма перевода">
+                            <input id="receiver" class="form-control mt-2" type="text" placeholder="Назначение">
+                        </div>
+                        <button id="create_transaction" class="btn btn-primary">Отправить</button>
+                    </div>
+                </div>
+                <div class="col-7 col-sm-7 col-md-8 pt-2 text-truncate" style="border-top: 1px solid #dee2e6;">
+                    <h4>Верификация файла</h4>
+                    <div>
+                        <div class="form-group">
+                            <label for="verifyFile">Файл для проверки</label>
+                            <input type="file" class="form-control-file" id="verifyFile">
+                        </div>
+                        <button id="verifyButton" class="btn btn-primary">Проверить</button>
+                    </div>
+                </div>
+            {% endif %}
+            </div>
+            <div class="row mb-3">
+                <h4 class="my-2">Список транзакций</h4>
+                &nbsp;
+                {% if account.transactions|length > 0 %}
+                <button class="link_button" style="margin-top: 3px" data-toggle="collapse"
+                                     data-target="#transaction-list"
+                                     aria-expanded="false"
+                                     aria-controls="transaction-list">
+                    (Показать↓)
+                </button>
+                {% else %}
+                    (Пусто)
+                {% endif %}
+                <div id="transaction-list" class="collapse">
+                    {% import "macros.tmpl" as macros %}
+                    {{ macros.transaction_list(account.transactions, account) }}
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <h4 class="my-2">Документы</h4>
+                &nbsp;
+                {% if account.files|length > 0 %}
+                <button class="link_button" style="margin-top: 3px" data-toggle="collapse"
+                                     data-target="#files-list"
+                                     aria-expanded="false"
+                                     aria-controls="files-list">
+                    (Показать↓)
+                </button>
+                <div id="files-list" class="col-12 collapse" style="font-size: 15px; border-left: 1px solid #dee2e6; border-right: 1px solid #dee2e6;">
+                    <div class="row" style="border-bottom: 2px solid #dee2e6; font-size:smaller;"></div>
+                    {% for file in account.files %}
+                    <div class="content row">
+                        <div style="margin-top: 2px" class="col-12">
+                            <b class="font-weight-bold text-secondary">Файл:</b>
+                            {% if file.name is none %}(без названия)
+                            {% else %}{{ file.name }} {% endif %}
+                            <br>
+                            <b class="font-weight-bold text-secondary">Цена:</b>
+                            {{ file.cost|coin("G") }}
+                            <br>
+                            <b class="font-weight-bold text-secondary">Размер:</b>
+                            {{ file.size|filesize }}
+                            <br>
+                            <b class="font-weight-bold text-secondary">В верификационной базе:</b>
+                            {% if file.in_verify_base %} Да {% else %} Нет {% endif %}
+                            <br>
+                            <b class="font-weight-bold text-secondary">Зашифрован:</b>
+                            {% if file.is_encrypted() %} Да {% else %} Нет {% endif %}
+                            <br>
+                            <b class="font-weight-bold text-secondary">Транзакция:</b>
+                            <a href="/tx/{{ file.tx_hash }}">{{ file.tx_hash }}</a>
+                            <br>
+                            <b class="font-weight-bold text-secondary">Блок:</b>
+                            <a href="/block/{{ file.block_hash }}">{{ file.block_hash }}</a>
+                            <br>
+                            <b class="font-weight-bold text-secondary">Дата:</b>
+                            {{ account.raw.get_transaction(file.tx_hash).timestamp|datetime }}
+                            <br>
+                            <b class="font-weight-bold text-secondary">Действия:</b>
+                            {% if file.is_encrypted() and "key" in session and
+                                file.public_key == session["key"]["public_key"] %}
+                                <a href="/decrypt_file/{{ file.tx_hash }}">Расшифровать+Скачать⇩</a>
+                            {% else %}
+                                <a href="/get_file/{{ file.tx_hash }}">Скачать⇩</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}(Пусто)
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

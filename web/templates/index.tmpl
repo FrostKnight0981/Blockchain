@@ -1,0 +1,74 @@
+{% extends "base.tmpl" %}
+
+{% block scripts %}
+<script src="{{ url_for("static", filename="index.js") }}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-3">
+    <!-- Account Info -->
+    <div class="row justify-content-md-center">
+        <div class="col-12 col-sm-12 col-md-10 mt-3 info-list">
+            <h4 style="margin-left: -10px">Данные о цепи</h4>
+            <div class="row border-bottom">
+            </div>
+        </div>
+        <div class="col-12 col-sm-12 col-md-5 mt-3">
+            <div class="row mb-3">
+                <div class="col-12" style="font-size:14px;">
+                    <h4 class="my-2" style="text-align: center;">Последние блоки</h4>
+
+                    <div class="row pb-2" style="border-bottom: 2px solid #dee2e6; font-size:12px;">
+                        <div class="col-2 text-secondary font-weight-bold">
+                            Индекс
+                        </div>
+                        <div class="col-5 text-secondary font-weight-bold">
+                            Дата
+                        </div>
+                        <div class="col-3 text-secondary font-weight-bold">
+                            Размер
+                        </div>
+                        <div class="col-2 text-secondary font-weight-bold">
+                            Кол. Tx
+                        </div>
+                    </div>
+                    <div id="last_block_list">
+
+                    </div>
+                    <!-- / -->
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-12 col-md-5 mt-3">
+            <div class="row mb-3">
+                <div class="col-12" style="font-size:14px;">
+                    <h4 class="my-2" style="text-align: center;">Последние транзакции</h4>
+
+                    <div class="row pb-2" style="border-bottom: 2px solid #dee2e6; font-size:12px;">
+                        <div class="col-7 text-secondary font-weight-bold">
+                            Хеш
+                        </div>
+                        <div class="col-3 text-secondary font-weight-bold">
+                            Дата
+                        </div>
+                        <div class="col-2 text-secondary font-weight-bold">
+                            Сумма
+                        </div>
+                    </div>
+                    <div class="odd_content row">
+                        <div class="col-7 text-truncate">
+                            <a href="#">f2c74bf609159f27dd89a829501ec34d6596d8b39a2cce7add73a8207088817a</a>
+                        </div>
+                        <div class="col-3">
+                            14:22:21
+                        </div>
+                        <div class="col-2">
+                            10
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
